@@ -1,8 +1,21 @@
 package com.example.monlauncher.ui.settings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.example.monlauncher.AppEntry
+
+sealed interface SettingsDestination {
+    object Home : SettingsDestination
+    object HomeScreen : SettingsDestination
+    object Folders : SettingsDestination
+    object LookFeel : SettingsDestination
+    object Integrations : SettingsDestination
+    object SelectDefaultLauncher : SettingsDestination
+    object About : SettingsDestination
+    object Discord : SettingsDestination
+}
 
 @Composable
 fun SettingsRoot(
@@ -11,5 +24,24 @@ fun SettingsRoot(
     onSave: (List<String>) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    GeneralSettingsScreen(allApps = allApps, pinned = pinned, onSave = onSave, modifier = modifier)
+    val (destination, setDestination) = remember { mutableStateOf<SettingsDestination>(SettingsDestination.Home) }
+
+    when (destination) {
+        SettingsDestination.Home ->
+            SettingsHomeScreen(onNavigate = setDestination, modifier = modifier)
+        SettingsDestination.HomeScreen ->
+            HomeScreenSettingsScreen(allApps = allApps, pinned = pinned, onSave = onSave, modifier = modifier)
+        SettingsDestination.Folders ->
+            FoldersSettingsScreen()
+        SettingsDestination.LookFeel ->
+            LookAndFeelSettingsScreen()
+        SettingsDestination.Integrations ->
+            IntegrationsSettingsScreen()
+        SettingsDestination.SelectDefaultLauncher ->
+            SelectDefaultLauncherScreen()
+        SettingsDestination.About ->
+            AboutScreen()
+        SettingsDestination.Discord ->
+            DiscordScreen()
+    }
 }

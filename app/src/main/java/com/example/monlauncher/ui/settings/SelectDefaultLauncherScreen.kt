@@ -4,6 +4,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 
 @Composable
-fun GesturesSettingsScreen() {
-    Text("Gestures settings")
+fun SelectDefaultLauncherScreen() {
+    // TODO: implement default launcher selection
+    Text("Select default launcher")
 }
