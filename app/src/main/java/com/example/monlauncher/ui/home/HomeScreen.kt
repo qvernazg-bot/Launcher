@@ -12,12 +12,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.monlauncher.MainViewModel
+import com.example.monlauncher.data.folders.Folder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,6 +27,9 @@ fun HomeScreen(
 ) {
     val allApps by vm.allApps.collectAsStateWithLifecycle()
     val pinned by vm.pinnedPackages.collectAsStateWithLifecycle()
+    val folders by vm.folders.collectAsStateWithLifecycle()
+
+    var pendingLaunch by remember { mutableStateOf<String?>(null) }
 
     val toShow = remember(allApps, pinned) {
         if (pinned.isEmpty()) allApps
@@ -54,9 +56,25 @@ fun HomeScreen(
         ) {
             RadialDock(
                 apps = toShow,
-                onLaunch = onLaunch,
+                onLaunch = { pkg ->
+                    if (vm.folderForPackage(pkg) == null) {
+                        pendingLaunch = pkg
+                    } else onLaunch(pkg)
+                },
                 pageSize = 10
             )
+
+            pendingLaunch?.let { pkg ->
+                AssignFolderDialog(
+                    folders = folders,
+                    onAssign = { folder: Folder ->
+                        vm.assignAppToFolder(pkg, folder.id)
+                        pendingLaunch = null
+                        onLaunch(pkg)
+                    },
+                    onCancel = { pendingLaunch = null }
+                )
+            }
         }
     }
 }
