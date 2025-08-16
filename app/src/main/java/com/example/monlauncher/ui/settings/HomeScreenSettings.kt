@@ -17,7 +17,7 @@ import androidx.core.graphics.drawable.toBitmap
 import com.example.monlauncher.AppEntry
 
 @Composable
-fun GeneralSettingsScreen(
+fun HomeScreenSettingsScreen(
     allApps: List<AppEntry>,
     pinned: List<String>,
     onSave: (List<String>) -> Unit,
