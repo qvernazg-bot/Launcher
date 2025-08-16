@@ -14,7 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.example.monlauncher.BuildConfig
+//import com.example.monlauncher.BuildConfig
 
 /**
  * Home page for settings showing the list of available categories and information about the app.
@@ -76,7 +76,8 @@ fun SettingsHomeScreen(
             Divider()
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "MonLauncher ${BuildConfig.VERSION_NAME}",
+                //text = "MonLauncher ${BuildConfig.VERSION_NAME}",
+                text = "MonLauncher 1.0",
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
