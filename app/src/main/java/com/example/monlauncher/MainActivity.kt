@@ -20,7 +20,6 @@ class MainActivity : ComponentActivity() {
             MonLauncherTheme(darkTheme = lookFeel.darkTheme, largeText = lookFeel.largeText) {
                 HomeScreen(
                     vm = vm,
-                    onLaunch = { pkg -> launchPackage(pkg) },
                     onOpenSettings = {
                         startActivity(Intent(this, SettingsActivity::class.java))
                     }
@@ -29,9 +28,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun launchPackage(packageName: String) {
-        val launch = packageManager.getLaunchIntentForPackage(packageName)
-            ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (launch != null) startActivity(launch)
-    }
 }
