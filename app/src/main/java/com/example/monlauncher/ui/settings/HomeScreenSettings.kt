@@ -21,11 +21,13 @@ fun HomeScreenSettingsScreen(
     allApps: List<AppEntry>,
     pinned: List<String>,
     onSave: (List<String>) -> Unit,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selected by remember(pinned) { mutableStateOf(pinned.toMutableList()) }
 
-    Column(modifier.fillMaxSize()) {
+    SettingsPage(title = "Home screen", onBack = onBack) { inner ->
+    Column(modifier.fillMaxSize().padding(inner)) {
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(allApps, key = { it.packageName }) { app ->
                 val checked = selected.contains(app.packageName)
@@ -62,5 +64,6 @@ fun HomeScreenSettingsScreen(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) { Text("Enregistrer") }
+    }
     }
 }

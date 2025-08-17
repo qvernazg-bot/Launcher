@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingsHomeScreen(
     onNavigate: (SettingsDestination) -> Unit,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val search = remember { mutableStateOf(TextFieldValue("")) }
@@ -48,7 +49,8 @@ fun SettingsHomeScreen(
         )
     )
 
-    LazyColumn(modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+    SettingsPage(title = "Réglages", onBack = onBack) { inner ->
+    LazyColumn(modifier.fillMaxSize().padding(inner).padding(horizontal = 16.dp)) {
         item {
             Spacer(Modifier.height(16.dp))
             Text(
@@ -101,6 +103,7 @@ fun SettingsHomeScreen(
             )
         }
         item { Spacer(Modifier.height(16.dp)) }
+    }
     }
 }
 

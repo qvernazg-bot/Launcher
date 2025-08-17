@@ -15,7 +15,27 @@ class SettingsRepository(private val context: Context) {
         prefs[PINS]?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
     }
 
+    val lookFeel: Flow<LookFeelSettings> = dataStore.data.map { prefs ->
+        LookFeelSettings(
+            darkTheme = prefs[DARK_THEME] ?: true,
+            largeText = prefs[LARGE_TEXT] ?: false
+        )
+    }
+
     suspend fun savePinned(packages: List<String>) {
         dataStore.edit { it[PINS] = packages.joinToString(",") }
     }
+
+    suspend fun setDarkTheme(enabled: Boolean) {
+        dataStore.edit { it[DARK_THEME] = enabled }
+    }
+
+    suspend fun setLargeText(enabled: Boolean) {
+        dataStore.edit { it[LARGE_TEXT] = enabled }
+    }
 }
+
+data class LookFeelSettings(
+    val darkTheme: Boolean,
+    val largeText: Boolean
+)
