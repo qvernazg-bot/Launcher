@@ -29,6 +29,7 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
 ) {
     val files by vm.files.collectAsStateWithLifecycle()
+    val currentDir by vm.currentDir.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.primary),
@@ -51,6 +52,8 @@ fun HomeScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             RadialDock(
+                currentDir = currentDir,
+                rootDir = vm.rootDir,
                 items = files,
                 onOpen = { entry -> vm.open(entry) }
             )

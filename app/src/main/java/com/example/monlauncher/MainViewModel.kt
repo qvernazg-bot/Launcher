@@ -23,6 +23,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val foldersRepo = FoldersRepository(app)
     private val filesRepo = FilesRepository()
 
+    /** Root directory containing user created files and folders. */
+    val rootDir: File = app.filesDir
+
     private val _allApps = MutableStateFlow<List<AppEntry>>(emptyList())
     val allApps: StateFlow<List<AppEntry>> = _allApps
 
@@ -35,7 +38,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val folders: StateFlow<List<Folder>> =
         foldersRepo.folders.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val _currentDir = MutableStateFlow<File>(app.filesDir)
+    private val _currentDir = MutableStateFlow<File>(rootDir)
     val currentDir: StateFlow<File> = _currentDir
 
     private val _files = MutableStateFlow<List<FileEntry>>(emptyList())

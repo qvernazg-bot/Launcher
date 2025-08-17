@@ -31,12 +31,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.monlauncher.FileEntry
+import java.io.File
 import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
 fun RadialDock(
+    currentDir: File,
+    rootDir: File,
     items: List<FileEntry>,
     onOpen: (FileEntry) -> Unit
 ) {
@@ -44,8 +47,8 @@ fun RadialDock(
     val currentPage = remember(items) { items }
 
     val radius = 180.dp
-    val arcDegrees = 140f
-    val startDeg = -70f
+    val arcDegrees = 180f
+    val startDeg = -90f
     val rippleProgress by animateFloatAsState(
         targetValue = if (expanded) 1f else 0f,
         animationSpec = tween(durationMillis = 500),
@@ -60,22 +63,26 @@ fun RadialDock(
             .pointerInput(expanded) {
                 if (expanded) {
                     detectDragGestures { change, drag ->
-                        rotation += drag.x
+                        rotation += drag.y
                         change.consume()
                     }
                 }
             }
     ) {
-        Box(modifier = Modifier.align(Alignment.Center)) {
+        Box(modifier = Modifier.align(Alignment.CenterEnd).offset(x = (-28).dp)) {
             FloatingActionButton(onClick = { expanded = !expanded }) {
-                Icon(Icons.Default.Menu, contentDescription = "Dock")
+                val isRoot = currentDir == rootDir
+                Icon(
+                    imageVector = if (isRoot) Icons.Default.Menu else Icons.Default.Folder,
+                    contentDescription = currentDir.name
+                )
             }
         }
 
         if (expanded || rippleProgress > 0f) {
             val config = LocalConfiguration.current
             val density = LocalDensity.current
-            val centerX = with(density) { (config.screenWidthDp.dp / 2).toPx() }
+            val centerX = with(density) { (config.screenWidthDp.dp - 28.dp).toPx() }
             val centerY = with(density) { (config.screenHeightDp.dp / 2).toPx() }
             val rPx = with(density) { (radius + 40.dp).toPx() }
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -100,7 +107,7 @@ fun RadialDock(
 
             val config = LocalConfiguration.current
             val density = LocalDensity.current
-            val centerX = with(density) { (config.screenWidthDp.dp / 2).toPx() }
+            val centerX = with(density) { (config.screenWidthDp.dp - 28.dp).toPx() }
             val centerY = with(density) { (config.screenHeightDp.dp / 2).toPx() }
             val rPx = with(density) { radius.toPx() }
 
