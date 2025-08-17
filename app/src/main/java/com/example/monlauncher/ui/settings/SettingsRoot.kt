@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.example.monlauncher.AppEntry
+import com.example.monlauncher.MainViewModel
 
 sealed interface SettingsDestination {
     object Home : SettingsDestination
@@ -19,6 +20,7 @@ sealed interface SettingsDestination {
 
 @Composable
 fun SettingsRoot(
+    vm: MainViewModel,
     allApps: List<AppEntry>,
     pinned: List<String>,
     onSave: (List<String>) -> Unit,
@@ -32,7 +34,7 @@ fun SettingsRoot(
         SettingsDestination.HomeScreen ->
             HomeScreenSettingsScreen(allApps = allApps, pinned = pinned, onSave = onSave, modifier = modifier)
         SettingsDestination.Folders ->
-            FoldersSettingsScreen()
+            FoldersSettingsScreen(vm = vm, allApps = allApps, modifier = modifier)
         SettingsDestination.LookFeel ->
             LookAndFeelSettingsScreen()
         SettingsDestination.Integrations ->

@@ -34,6 +34,7 @@ class SettingsActivity : ComponentActivity() {
                     topBar = { TopAppBar(title = { Text("Réglages") }) }
                 ) { inner ->
                     SettingsRoot(
+                        vm = vm,
                         allApps = allApps,
                         pinned = pinned,
                         onSave = { list ->
