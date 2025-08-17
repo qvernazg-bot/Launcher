@@ -9,8 +9,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.icons.Icons
-import androidx.compose.material3.icons.filled.Add
+import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -18,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.monlauncher.AppEntry
 import com.example.monlauncher.MainViewModel
 import com.example.monlauncher.data.folders.Folder
+import com.example.monlauncher.R
 
 /** Settings screen to manage application folders. */
 @Composable
@@ -34,7 +34,10 @@ fun FoldersSettingsScreen(
             FloatingActionButton(onClick = {
                 editing = Folder(name = "")
             }) {
-                Icon(Icons.Default.Add, contentDescription = "Add folder")
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_add_custom),
+                    contentDescription = "Add folder"
+                )
             }
         }
     ) { inner ->
