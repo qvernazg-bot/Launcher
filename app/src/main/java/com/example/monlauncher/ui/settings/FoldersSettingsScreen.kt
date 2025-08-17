@@ -7,36 +7,36 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.monlauncher.AppEntry
 import com.example.monlauncher.MainViewModel
-import com.example.monlauncher.data.folders.Folder
 import com.example.monlauncher.R
+import com.example.monlauncher.data.folders.Folder
 
 /** Settings screen to manage application folders. */
 @Composable
 fun FoldersSettingsScreen(
     vm: MainViewModel,
     allApps: List<AppEntry>,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val folders by vm.folders.collectAsStateWithLifecycle()
     var editing by remember { mutableStateOf<Folder?>(null) }
 
-    Scaffold(
+    SettingsPage(
+        title = "Folders",
+        onBack = onBack,
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                editing = Folder(name = "")
-            }) {
+            FloatingActionButton(onClick = { editing = Folder(name = "") }) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_add_custom),
-                    contentDescription = "Add folder"
+                    contentDescription = "Add folder",
                 )
             }
         }
@@ -44,7 +44,7 @@ fun FoldersSettingsScreen(
         LazyColumn(
             modifier
                 .padding(inner)
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             items(folders) { folder ->
                 Column(

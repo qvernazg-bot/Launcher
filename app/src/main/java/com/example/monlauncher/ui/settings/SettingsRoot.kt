@@ -1,11 +1,11 @@
 package com.example.monlauncher.ui.settings
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.monlauncher.AppEntry
 import com.example.monlauncher.MainViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 sealed interface SettingsDestination {
     object Home : SettingsDestination
@@ -24,26 +24,42 @@ fun SettingsRoot(
     allApps: List<AppEntry>,
     pinned: List<String>,
     onSave: (List<String>) -> Unit,
+    onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val (destination, setDestination) = remember { mutableStateOf<SettingsDestination>(SettingsDestination.Home) }
+    val stack = remember { mutableStateListOf<SettingsDestination>(SettingsDestination.Home) }
+    val current = stack.last()
+    val navigate: (SettingsDestination) -> Unit = { stack.add(it) }
+    val goBack: () -> Unit = {
+        if (stack.size > 1) stack.removeAt(stack.lastIndex) else onClose()
+    }
 
-    when (destination) {
+    BackHandler(onBack = goBack)
+
+    when (current) {
         SettingsDestination.Home ->
-            SettingsHomeScreen(onNavigate = setDestination, modifier = modifier)
+            SettingsHomeScreen(onNavigate = navigate, onBack = goBack, modifier = modifier)
         SettingsDestination.HomeScreen ->
-            HomeScreenSettingsScreen(allApps = allApps, pinned = pinned, onSave = onSave, modifier = modifier)
+            HomeScreenSettingsScreen(allApps = allApps, pinned = pinned, onSave = onSave, onBack = goBack, modifier = modifier)
         SettingsDestination.Folders ->
-            FoldersSettingsScreen(vm = vm, allApps = allApps, modifier = modifier)
-        SettingsDestination.LookFeel ->
-            LookAndFeelSettingsScreen()
+            FoldersSettingsScreen(vm = vm, allApps = allApps, onBack = goBack, modifier = modifier)
+        SettingsDestination.LookFeel -> {
+            val lookFeel by vm.lookFeel.collectAsStateWithLifecycle()
+            LookAndFeelSettingsScreen(
+                darkTheme = lookFeel.darkTheme,
+                largeText = lookFeel.largeText,
+                onDarkThemeChange = vm::setDarkTheme,
+                onLargeTextChange = vm::setLargeText,
+                onBack = goBack
+            )
+        }
         SettingsDestination.Integrations ->
-            IntegrationsSettingsScreen()
+            IntegrationsSettingsScreen(onBack = goBack)
         SettingsDestination.SelectDefaultLauncher ->
-            SelectDefaultLauncherScreen()
+            SelectDefaultLauncherScreen(onBack = goBack)
         SettingsDestination.About ->
-            AboutScreen()
+            AboutScreen(onBack = goBack)
         SettingsDestination.Discord ->
-            DiscordScreen()
+            DiscordScreen(onBack = goBack)
     }
 }

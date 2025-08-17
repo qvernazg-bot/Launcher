@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.monlauncher.data.apps.AppsRepository
 import com.example.monlauncher.data.prefs.SettingsRepository
+import com.example.monlauncher.data.prefs.LookFeelSettings
 import com.example.monlauncher.data.folders.Folder
 import com.example.monlauncher.data.folders.FoldersRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +25,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val pinnedPackages: StateFlow<List<String>> =
         settingsRepo.pinnedPackages.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val lookFeel: StateFlow<LookFeelSettings> =
+        settingsRepo.lookFeel.stateIn(viewModelScope, SharingStarted.Eagerly, LookFeelSettings(true, false))
+
     val folders: StateFlow<List<Folder>> =
         foldersRepo.folders.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -41,6 +45,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             settingsRepo.savePinned(packages)
         }
+    }
+
+    fun setDarkTheme(enabled: Boolean) {
+        viewModelScope.launch { settingsRepo.setDarkTheme(enabled) }
+    }
+
+    fun setLargeText(enabled: Boolean) {
+        viewModelScope.launch { settingsRepo.setLargeText(enabled) }
     }
 
     fun upsertFolder(folder: Folder) {

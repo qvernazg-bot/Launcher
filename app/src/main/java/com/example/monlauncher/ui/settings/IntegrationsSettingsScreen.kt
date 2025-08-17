@@ -1,10 +1,18 @@
 package com.example.monlauncher.ui.settings
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 @Composable
-fun IntegrationsSettingsScreen() {
-    // TODO: implement integrations settings
-    Text("Integrations settings")
+fun IntegrationsSettingsScreen(onBack: () -> Unit) {
+    SettingsPage(title = "Integrations", onBack = onBack) { inner: PaddingValues ->
+        Text(
+            "Integrations settings",
+            modifier = Modifier.padding(inner).padding(16.dp)
+        )
+    }
 }
