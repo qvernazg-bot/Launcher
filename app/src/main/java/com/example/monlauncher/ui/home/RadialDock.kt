@@ -8,47 +8,53 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.example.monlauncher.AppEntry
-import androidx.core.graphics.drawable.toBitmap
-import androidx.compose.foundation.Image
+import com.example.monlauncher.data.files.FileRepository
 import kotlinx.coroutines.delay
+import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
 fun RadialDock(
-    apps: List<AppEntry>,
-    onLaunch: (String) -> Unit,
-    pageSize: Int = 10
+    repository: FileRepository = remember { FileRepository() },
+    startDir: File = repository.rootDir
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val pages = remember(apps, pageSize) { apps.chunked(pageSize) }
-    var pageIndex by rememberSaveable { mutableStateOf(0) }
-    val pageCount = pages.size.coerceAtLeast(1)
-    pageIndex = pageIndex.coerceIn(0, pageCount - 1)
-    val currentPage = pages.getOrElse(pageIndex) { emptyList() }
+    var currentDir by remember { mutableStateOf(startDir) }
+    var currentPage by remember(currentDir) {
+        mutableStateOf(repository.children(currentDir))
+    }
 
     val radius = 180.dp
     val arcDegrees = 140f
@@ -59,37 +65,40 @@ fun RadialDock(
         label = "ripple"
     )
 
-    Box(Modifier.fillMaxSize()) {
-        Box(
-            Modifier
-                .fillMaxHeight()
-                .padding(end = 12.dp)
-                .wrapContentWidth(Alignment.End),
-            contentAlignment = Alignment.CenterEnd
-        ) {
-            Column(horizontalAlignment = Alignment.End) {
-                if (expanded && pageCount > 1) {
-                    FloatingActionButton(
-                        onClick = { pageIndex = (pageIndex - 1 + pageCount) % pageCount },
-                        modifier = Modifier.padding(bottom = 8.dp).size(40.dp)
-                    ) { Icon(Icons.Default.ExpandLess, contentDescription = "Prev page") }
+    var rotation by remember { mutableStateOf(0f) }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .pointerInput(expanded) {
+                if (expanded) {
+                    detectDragGestures { change, drag ->
+                        rotation += drag.x
+                        change.consume()
+                    }
                 }
-                FloatingActionButton(onClick = { expanded = !expanded }) {
-                    Icon(Icons.Default.Menu, contentDescription = "Dock")
+            }
+    ) {
+        Box(modifier = Modifier.align(Alignment.Center)) {
+            FloatingActionButton(onClick = {
+                if (expanded && currentDir != repository.rootDir) {
+                    currentDir.parentFile?.let {
+                        currentDir = it
+                        currentPage = repository.children(currentDir)
+                    }
+                } else {
+                    expanded = !expanded
                 }
-                if (expanded && pageCount > 1) {
-                    FloatingActionButton(
-                        onClick = { pageIndex = (pageIndex + 1) % pageCount },
-                        modifier = Modifier.padding(top = 8.dp).size(40.dp)
-                    ) { Icon(Icons.Default.ExpandMore, contentDescription = "Next page") }
-                }
+            }) {
+                val icon = if (currentDir == repository.rootDir) Icons.Default.Menu else Icons.Default.Folder
+                Icon(icon, contentDescription = "Dock")
             }
         }
 
         if (expanded || rippleProgress > 0f) {
             val config = LocalConfiguration.current
             val density = LocalDensity.current
-            val centerX = with(density) { (config.screenWidthDp.dp - 56.dp).toPx() }
+            val centerX = with(density) { (config.screenWidthDp.dp / 2).toPx() }
             val centerY = with(density) { (config.screenHeightDp.dp / 2).toPx() }
             val rPx = with(density) { (radius + 40.dp).toPx() }
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -114,18 +123,18 @@ fun RadialDock(
 
             val config = LocalConfiguration.current
             val density = LocalDensity.current
-            val centerX = with(density) { (config.screenWidthDp.dp - 56.dp).toPx() }
+            val centerX = with(density) { (config.screenWidthDp.dp / 2).toPx() }
             val centerY = with(density) { (config.screenHeightDp.dp / 2).toPx() }
             val rPx = with(density) { radius.toPx() }
 
-            currentPage.forEachIndexed { i, app ->
-                val angleDeg = startDeg + i * step
+            currentPage.forEachIndexed { i, file ->
+                val angleDeg = startDeg + rotation / 5f + i * step
                 val angle = Math.toRadians(angleDeg.toDouble())
                 val targetX = centerX - (cos(angle) * rPx).toFloat()
                 val targetY = centerY + (sin(angle) * rPx).toFloat()
 
-                val anim = remember(app.packageName) { Animatable(0f) }
-                LaunchedEffect(expanded, pageIndex) {
+                val anim = remember(file.absolutePath) { Animatable(0f) }
+                LaunchedEffect(expanded) {
                     if (expanded) {
                         delay(i * 35L)
                         anim.animateTo(
@@ -136,8 +145,6 @@ fun RadialDock(
                         anim.snapTo(0f)
                     }
                 }
-
-                val bmp = remember(app.packageName) { app.icon.toBitmap(112, 112).asImageBitmap() }
                 val x = centerX + (targetX - centerX) * anim.value
                 val y = centerY + (targetY - centerY) * anim.value
                 val scale = 0.7f + 0.35f * anim.value
@@ -156,38 +163,16 @@ fun RadialDock(
                         }
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { onLaunch(app.packageName) }
+                        .clickable {
+                            if (file.isDirectory) {
+                                currentDir = file
+                                currentPage = repository.children(currentDir)
+                            }
+                        }
                         .padding(8.dp),
                 ) {
-                    Image(
-                        bitmap = bmp,
-                        contentDescription = app.label,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            }
-
-            if (pageCount > 1) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 16.dp, bottom = 24.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    repeat(pageCount) { idx ->
-                        val active = idx == pageIndex
-                        Box(
-                            Modifier
-                                .padding(3.dp)
-                                .size(if (active) 10.dp else 8.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (active) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                                )
-                                .clickable { pageIndex = idx }
-                        )
-                    }
+                    val icon = if (file.isDirectory) Icons.Default.Folder else Icons.Default.InsertDriveFile
+                    Icon(icon, contentDescription = file.name, modifier = Modifier.fillMaxSize())
                 }
             }
         }
